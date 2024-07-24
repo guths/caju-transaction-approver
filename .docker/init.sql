@@ -8,24 +8,25 @@ CREATE TABLE merchant (
     `name` VARCHAR(255) NOT NULL
 );
 
-CREATE TABLE category_mcc (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    `name` VARCHAR(255) NOT NULL,
-    MCC INT NOT NULL
-);
-
 CREATE TABLE category (
     id INT PRIMARY KEY AUTO_INCREMENT,
     `name` VARCHAR(255) NOT NULL,
-    category_mcc_id INT NOT NULL,
-    FOREIGN KEY (category_mcc_id) REFERENCES category_mcc(id)
+);
+
+CREATE TABLE mcc (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    mmc INT NOT NULL
+    category_id INT NOT NULL,
+    FOREIGN KEY (category_id) REFERENCES category(id)
 );
 
 CREATE TABLE balance (
     id INT PRIMARY KEY AUTO_INCREMENT,
     account_id INT NOT NULL,
     amount DECIMAL(10, 2) NOT NULL DEFAULT 0,
-    FOREIGN KEY (account_id) REFERENCES account(ID)
+    category_id INT NOT NULL,
+    FOREIGN KEY (account_id) REFERENCES account(ID),
+    FOREIGN KEY (category_id) REFERENCES category(ID)
 );
 
 CREATE TABLE `transation` (
