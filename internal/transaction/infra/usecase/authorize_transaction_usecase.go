@@ -1,10 +1,10 @@
 package usecase
 
 import (
-	"fmt"
 	"strconv"
 
 	merchant_service "github.com/guths/caju-transaction-approver/internal/merchant/infra/service"
+	"github.com/guths/caju-transaction-approver/internal/transaction/domain"
 	"github.com/guths/caju-transaction-approver/internal/transaction/infra/repository"
 	"github.com/guths/caju-transaction-approver/internal/transaction/infra/service"
 	"github.com/shopspring/decimal"
@@ -23,25 +23,34 @@ type InputTransactionDTO struct {
 	Merchant    string  `json:"merchant"`
 }
 
+type OutputTransactionDTO struct {
+	Success          bool            `json:"success"`
+	Message          string          `json:"message"`
+	Account          int             `json:"account"`
+	Merchant         string          `json:"merchant"`
+	AmountTransfered decimal.Decimal `json:"amount_transfered"`
+	Category         string          `json:"category"`
+	TransactionID    int             `json:"transaction_id"`
+}
+
 func NewAuthorizeTransactionUseCase(balanceService service.BalanceService) AuthorizeTransactionUseCase {
 	return AuthorizeTransactionUseCase{
 		balanceService: balanceService,
 	}
 }
 
-func (uc *AuthorizeTransactionUseCase) Execute(inputAuthorizeTransactionDTO InputTransactionDTO) error {
+func (uc *AuthorizeTransactionUseCase) Execute(inputAuthorizeTransactionDTO InputTransactionDTO) domain.Response {
 	amount := decimal.NewFromFloat(inputAuthorizeTransactionDTO.TotalAmount)
-
 	accountId, err := strconv.Atoi(inputAuthorizeTransactionDTO.Account)
 
 	if err != nil {
-		return err
+		return domain.GetGenericResponseError(err.Error())
 	}
 
 	fallbackCategory, err := uc.mccService.GetFallbackCategory()
 
 	if err != nil {
-		return err
+		return domain.GetGenericResponseError(err.Error())
 	}
 
 	category, err := uc.mccService.GetCategoryByMcc(inputAuthorizeTransactionDTO.Mcc)
@@ -50,60 +59,47 @@ func (uc *AuthorizeTransactionUseCase) Execute(inputAuthorizeTransactionDTO Inpu
 		transaction, err := uc.balanceService.DebitAmount(accountId, category.Id, amount)
 
 		if err == nil {
-			//retornar transacao aqui //SUCESSO
-			return nil
+			return domain.GetApprovedResponse()
 		}
 
 		if err != repository.ErrInsufficientFunds && transaction == nil {
-			return err
+			return domain.GetGenericResponseError(err.Error())
 		}
 
-		transaction, err = uc.balanceService.DebitAmount(accountId, fallbackCategory.Id, amount)
+		_, err = uc.balanceService.DebitAmount(accountId, fallbackCategory.Id, amount)
 
 		if err == nil {
-			//retornar transacao aqui //SUCESSO
-			return nil
+			return domain.GetApprovedResponse()
 		}
 
-		if err == repository.ErrInsufficientFunds && transaction == nil {
-			return err
-		}
-
-		return err
+		return domain.GetRejectedResponse()
 	}
 
 	if err != repository.ErrCategoryNotFound {
-		return err
+		return domain.GetGenericResponseError(err.Error())
 	}
 
-	category, err = uc.merchantService.GetCategoryByMerchantName(inputAuthorizeTransactionDTO.Merchant)
+	c, err := uc.merchantService.GetCategoryByMerchantName(inputAuthorizeTransactionDTO.Merchant)
 
 	if err != nil {
-		//retornar erro genérico de merchant não encontrado
-		return err
+		return domain.GetGenericResponseError(err.Error())
 	}
 
-	transaction, err := uc.balanceService.DebitAmount(accountId, category.Id, amount)
+	_, err = uc.balanceService.DebitAmount(accountId, c.Id, amount)
 
 	if err == nil {
-		fmt.Println(transaction)
-		//sucesso
-		//retornar transacao
-		return nil
+		return domain.GetApprovedResponse()
 	}
 
 	if err != repository.ErrInsufficientFunds {
-		//erro generico
-		return err
+		return domain.GetGenericResponseError(err.Error())
 	}
 
-	transaction, err = uc.balanceService.DebitAmount(accountId, fallbackCategory.Id, amount)
+	_, err = uc.balanceService.DebitAmount(accountId, fallbackCategory.Id, amount)
 
 	if err != nil {
-		//retornar qualquer erro aqui
-		return err
+		return domain.GetRejectedResponse()
 	}
 
-	//retornar transacao certinha aqui
-	return nil
+	return domain.GetApprovedResponse()
 }

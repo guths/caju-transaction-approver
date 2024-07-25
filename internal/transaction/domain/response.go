@@ -1,26 +1,26 @@
 package domain
 
-type response struct {
+type Response struct {
 	code    string
 	message string
 }
 
-func GetApprovedResponse() response {
-	return response{
+func GetApprovedResponse() Response {
+	return Response{
 		code:    "00",
 		message: "approved",
 	}
 }
 
-func GetRejectedResponse() response {
-	return response{
+func GetRejectedResponse() Response {
+	return Response{
 		code:    "51",
 		message: "insufficient founds",
 	}
 }
 
-func GetGenericResponseError(message string) response {
-	return response{
+func GetGenericResponseError(message string) Response {
+	return Response{
 		code:    "07",
 		message: message,
 	}

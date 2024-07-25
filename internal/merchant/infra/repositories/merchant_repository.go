@@ -2,6 +2,8 @@ package repositories
 
 import (
 	"database/sql"
+	"errors"
+	"fmt"
 
 	"github.com/guths/caju-transaction-approver/internal/merchant/domain"
 	transaction_domain "github.com/guths/caju-transaction-approver/internal/transaction/domain"
@@ -17,6 +19,32 @@ func NewMysqlMerchantRepository(db *sql.DB) domain.MerchantRepository {
 	}
 }
 
-func (repo *mysqlMerchantRepository) GetCategoryByMerchantName(name string) (transaction_domain.Category, error) {
-	return transaction_domain.Category{}, nil
+var (
+	ErrCategoryNotFound = fmt.Errorf("category not found")
+)
+
+func (repo *mysqlMerchantRepository) GetCategoryByMerchantName(name string) (*transaction_domain.Category, error) {
+	var category transaction_domain.Category
+
+	q := `
+		SELECT category.id, category.name
+		FROM merchant
+		INNER JOIN category
+		ON merchant.category_id = category.id
+		WHERE merchant.name = ?
+	`
+
+	err := repo.db.QueryRow(q, name).Scan(
+		&category.Id,
+		&category.Name,
+	)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrCategoryNotFound
+		}
+	}
+
+	return &category, nil
 }

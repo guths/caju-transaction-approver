@@ -27,13 +27,7 @@ func (h *TransactionHandler) AuthorizeTransaction(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"error": domain.GetGenericResponseError("invalid request format")})
 	}
 
-	err := h.authorizeTransaction.Execute(inputTransactionDTO)
+	output := h.authorizeTransaction.Execute(inputTransactionDTO)
 
-	if err != nil {
-		c.JSON(http.StatusOK, gin.H{"error": domain.GetGenericResponseError("invalid request format")})
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"success": domain.GetApprovedResponse(),
-	})
+	c.JSON(http.StatusOK, output)
 }

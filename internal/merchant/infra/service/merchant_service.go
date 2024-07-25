@@ -15,6 +15,11 @@ func NewMerchantService(repo domain.MerchantRepository) MerchantService {
 	}
 }
 
-func (service *MerchantService) GetCategoryByMerchantName(name string) (transaction_domain.Category, error) {
-	return transaction_domain.Category{}, nil
+func (service *MerchantService) GetCategoryByMerchantName(name string) (*transaction_domain.Category, error) {
+	category, err := service.repo.GetCategoryByMerchantName(name)
+
+	if err != nil {
+		return nil, err
+	}
+	return category, nil
 }

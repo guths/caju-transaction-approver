@@ -1,5 +1,7 @@
 package domain
 
+import "github.com/shopspring/decimal"
+
 type Type string
 
 var (
@@ -8,7 +10,7 @@ var (
 )
 
 type Transaction struct {
-	Id     int  `json:"id"`
-	Amount int  `json:"amount"`
-	Type   Type `json:"type"`
+	Id     int             `json:"id"`
+	Amount decimal.Decimal `json:"amount"`
+	Type   Type            `json:"type"`
 }

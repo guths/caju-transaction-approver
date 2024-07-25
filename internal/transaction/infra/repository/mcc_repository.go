@@ -22,7 +22,7 @@ func NewMccRepository(db *sql.DB) domain.MccRepository {
 	}
 }
 
-func (repo *mysqlBalanceRepository) GetFallbackCategory() (*domain.Category, error) {
+func (repo *mysqlMccRepository) GetFallbackCategory() (*domain.Category, error) {
 	q := `
 		SELECT id, name
 		FROM category
