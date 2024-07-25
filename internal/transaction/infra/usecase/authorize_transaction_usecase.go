@@ -1,8 +1,11 @@
 package usecase
 
 import (
+	"strconv"
+
 	merchant_service "github.com/guths/caju-transaction-approver/internal/merchant/infra/service"
 	"github.com/guths/caju-transaction-approver/internal/transaction/infra/service"
+	"github.com/shopspring/decimal"
 )
 
 type AuthorizeTransactionUseCase struct {
@@ -27,11 +30,26 @@ func NewAuthorizeTransactionUseCase(balanceService service.BalanceService) Autho
 func (uc *AuthorizeTransactionUseCase) Execute(inputAuthorizeTransactionDTO InputTransactionDTO) error {
 	category, err := uc.mccService.GetCategoryByMcc(inputAuthorizeTransactionDTO.Mcc)
 
+	amount := decimal.NewFromFloat(inputAuthorizeTransactionDTO.TotalAmount)
+
+	accountId, err := strconv.Atoi(inputAuthorizeTransactionDTO.Account)
+
+	if err != nil {
+		return err
+	}
+
 	if err == nil {
 		//olhar saldo
+		accountAmount, err := uc.balanceService.GetAmountByAccountId(accountId, category.Id)
+
+		if err != nil {
+			return err
+		}
 
 		//se tiver desconta
-		//se nao tiver
+		if ok := uc.balanceService.IsBalanceSufficient(amount, accountAmount); ok {
+			//descontar saldo aki
+		}
 
 		//olhar saldo cash
 		//tem saldo? desconta, senao retornarr saldo insuficiente
