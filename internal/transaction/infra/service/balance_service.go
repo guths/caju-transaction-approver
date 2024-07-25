@@ -11,3 +11,7 @@ func NewBalanceService(repo domain.BalanceRepository) BalanceService {
 		repo: repo,
 	}
 }
+
+func (s *BalanceService) GetAmountByAccountId(accountId int, categoryId int) {
+
+}

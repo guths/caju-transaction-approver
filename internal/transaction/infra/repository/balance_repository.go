@@ -15,3 +15,5 @@ func NewBalanceRepository(db *sql.DB) domain.BalanceRepository {
 		db: db,
 	}
 }
+
+func (repo *mysqlBalanceRepository) GetCategoryAmountByAccountId(categoryId int, accountId int)

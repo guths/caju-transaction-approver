@@ -3,19 +3,20 @@ CREATE TABLE account (
     `name` VARCHAR(255) NOT NULL
 );
 
-CREATE TABLE merchant (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    `name` VARCHAR(255) NOT NULL
-);
-
 CREATE TABLE category (
     id INT PRIMARY KEY AUTO_INCREMENT,
     `name` VARCHAR(255) NOT NULL,
 );
 
+CREATE TABLE merchant (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    `name` VARCHAR(255) NOT NULL
+    category_id INT NOT NULL,
+);
+
 CREATE TABLE mcc (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    mmc INT NOT NULL
+    mmc INT NOT NULL UNIQUE,
     category_id INT NOT NULL,
     FOREIGN KEY (category_id) REFERENCES category(id)
 );
