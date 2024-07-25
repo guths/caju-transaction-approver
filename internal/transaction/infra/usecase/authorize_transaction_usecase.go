@@ -1,9 +1,11 @@
 package usecase
 
 import (
+	"fmt"
 	"strconv"
 
 	merchant_service "github.com/guths/caju-transaction-approver/internal/merchant/infra/service"
+	"github.com/guths/caju-transaction-approver/internal/transaction/infra/repository"
 	"github.com/guths/caju-transaction-approver/internal/transaction/infra/service"
 	"github.com/shopspring/decimal"
 )
@@ -36,42 +38,41 @@ func (uc *AuthorizeTransactionUseCase) Execute(inputAuthorizeTransactionDTO Inpu
 		return err
 	}
 
+	fallbackCategory, err := uc.mccService.GetFallbackCategory()
+
+	if err != nil {
+		return err
+	}
+
 	category, err := uc.mccService.GetCategoryByMcc(inputAuthorizeTransactionDTO.Mcc)
 
 	if err == nil {
-		//olhar saldo
-		accountAmount, err := uc.balanceService.GetAmountByAccountId(accountId, category.Id)
+		transaction, err := uc.balanceService.DebitAmount(accountId, category.Id, amount)
 
-		if err != nil {
-			return err
-		}
-
-		//se tiver desconta
-		if ok := uc.balanceService.IsBalanceSufficient(amount, accountAmount); ok {
-			//descontar saldo aki
-
+		if err == nil {
+			//retornar transacao aqui //SUCESSO
 			return nil
 		}
 
-		//olhar saldo cash
-		fallbackAmount, err := uc.balanceService.GetFallbackBalanceAmount(accountId)
-
-		if err != nil {
+		if err != repository.ErrInsufficientFunds && transaction == nil {
 			return err
 		}
 
-		if ok := uc.balanceService.IsBalanceSufficient(amount, fallbackAmount); !ok {
-			//retornar saldo insuficiente
+		transaction, err = uc.balanceService.DebitAmount(accountId, fallbackCategory.Id, amount)
 
+		if err == nil {
+			//retornar transacao aqui //SUCESSO
 			return nil
 		}
 
-		//descontar saldo aki
+		if err == repository.ErrInsufficientFunds && transaction == nil {
+			return err
+		}
 
-		return nil
+		return err
 	}
 
-	if err != service.ErrCategoryNotFound {
+	if err != repository.ErrCategoryNotFound {
 		return err
 	}
 
@@ -82,29 +83,27 @@ func (uc *AuthorizeTransactionUseCase) Execute(inputAuthorizeTransactionDTO Inpu
 		return err
 	}
 
-	//olhar saldo
-	accountAmount, err := uc.balanceService.GetAmountByAccountId(accountId, category.Id)
+	transaction, err := uc.balanceService.DebitAmount(accountId, category.Id, amount)
 
-	if err != nil {
-		return err
-	}
-
-	if ok := uc.balanceService.IsBalanceSufficient(amount, accountAmount); ok {
-		//descontar saldo aki
+	if err == nil {
+		fmt.Println(transaction)
+		//sucesso
+		//retornar transacao
 		return nil
 	}
 
-	fallbackAmount, err := uc.balanceService.GetFallbackBalanceAmount(accountId)
-
-	if err != nil {
+	if err != repository.ErrInsufficientFunds {
+		//erro generico
 		return err
 	}
 
-	if ok := uc.balanceService.IsBalanceSufficient(amount, fallbackAmount); !ok {
-		//retornar saldo insuficiente
-		return nil
+	transaction, err = uc.balanceService.DebitAmount(accountId, fallbackCategory.Id, amount)
+
+	if err != nil {
+		//retornar qualquer erro aqui
+		return err
 	}
 
-	//descontar saldo
+	//retornar transacao certinha aqui
 	return nil
 }

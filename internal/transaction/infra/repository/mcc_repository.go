@@ -3,8 +3,13 @@ package repository
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 
 	"github.com/guths/caju-transaction-approver/internal/transaction/domain"
+)
+
+var (
+	ErrCategoryNotFound = fmt.Errorf("category not found")
 )
 
 type mysqlMccRepository struct {
@@ -15,6 +20,31 @@ func NewMccRepository(db *sql.DB) domain.MccRepository {
 	return &mysqlMccRepository{
 		db: db,
 	}
+}
+
+func (repo *mysqlBalanceRepository) GetFallbackCategory() (*domain.Category, error) {
+	q := `
+		SELECT id, name
+		FROM category
+		WHERE category.is_fallback = ?
+	`
+	var category domain.Category
+
+	err := repo.db.QueryRow(q, true).Scan(
+		&category.Id,
+		&category.Name,
+	)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrCategoryNotFound
+		}
+
+		return nil, err
+	}
+
+	return &category, nil
 }
 
 func (repo *mysqlMccRepository) GetCategoryByMcc(mmc string) (domain.Category, error) {
