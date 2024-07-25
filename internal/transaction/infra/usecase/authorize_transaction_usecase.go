@@ -28,8 +28,6 @@ func NewAuthorizeTransactionUseCase(balanceService service.BalanceService) Autho
 }
 
 func (uc *AuthorizeTransactionUseCase) Execute(inputAuthorizeTransactionDTO InputTransactionDTO) error {
-	category, err := uc.mccService.GetCategoryByMcc(inputAuthorizeTransactionDTO.Mcc)
-
 	amount := decimal.NewFromFloat(inputAuthorizeTransactionDTO.TotalAmount)
 
 	accountId, err := strconv.Atoi(inputAuthorizeTransactionDTO.Account)
@@ -37,6 +35,8 @@ func (uc *AuthorizeTransactionUseCase) Execute(inputAuthorizeTransactionDTO Inpu
 	if err != nil {
 		return err
 	}
+
+	category, err := uc.mccService.GetCategoryByMcc(inputAuthorizeTransactionDTO.Mcc)
 
 	if err == nil {
 		//olhar saldo
@@ -49,11 +49,26 @@ func (uc *AuthorizeTransactionUseCase) Execute(inputAuthorizeTransactionDTO Inpu
 		//se tiver desconta
 		if ok := uc.balanceService.IsBalanceSufficient(amount, accountAmount); ok {
 			//descontar saldo aki
+
+			return nil
 		}
 
 		//olhar saldo cash
-		//tem saldo? desconta, senao retornarr saldo insuficiente
+		fallbackAmount, err := uc.balanceService.GetFallbackBalanceAmount(accountId)
 
+		if err != nil {
+			return err
+		}
+
+		if ok := uc.balanceService.IsBalanceSufficient(amount, fallbackAmount); !ok {
+			//retornar saldo insuficiente
+
+			return nil
+		}
+
+		//descontar saldo aki
+
+		return nil
 	}
 
 	if err != service.ErrCategoryNotFound {
@@ -64,19 +79,32 @@ func (uc *AuthorizeTransactionUseCase) Execute(inputAuthorizeTransactionDTO Inpu
 
 	if err != nil {
 		//retornar erro genérico de merchant não encontrado
+		return err
 	}
 
 	//olhar saldo
+	accountAmount, err := uc.balanceService.GetAmountByAccountId(accountId, category.Id)
 
-	//tem saldo?
-	//sim
-	//desconta
-	//nao
-	//fallback
-	//olhar saldo fall back
-	//tem saldo?
-	//sim
-	//desconta
-	//nao
-	//retornar saldo insuficiente
+	if err != nil {
+		return err
+	}
+
+	if ok := uc.balanceService.IsBalanceSufficient(amount, accountAmount); ok {
+		//descontar saldo aki
+		return nil
+	}
+
+	fallbackAmount, err := uc.balanceService.GetFallbackBalanceAmount(accountId)
+
+	if err != nil {
+		return err
+	}
+
+	if ok := uc.balanceService.IsBalanceSufficient(amount, fallbackAmount); !ok {
+		//retornar saldo insuficiente
+		return nil
+	}
+
+	//descontar saldo
+	return nil
 }

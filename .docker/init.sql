@@ -6,6 +6,7 @@ CREATE TABLE account (
 CREATE TABLE category (
     id INT PRIMARY KEY AUTO_INCREMENT,
     `name` VARCHAR(255) NOT NULL,
+    is_fallback BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 CREATE TABLE merchant (
@@ -34,6 +35,7 @@ CREATE TABLE `transation` (
     ID INT PRIMARY KEY AUTO_INCREMENT,
     account_id INT NOT NULL,
     balance_id INT NOT NULL,
+    `type` ENUM('DEBIT', 'CREDIT') NOT NULL,
     amount DECIMAL(10, 2) NOT NULL,
     FOREIGN KEY (account_id) REFERENCES account(id),
     FOREIGN KEY (balance_id) REFERENCES balance(id)
