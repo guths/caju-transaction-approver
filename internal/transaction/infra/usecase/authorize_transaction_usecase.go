@@ -1,8 +1,7 @@
 package usecase
 
 import (
-	"strconv"
-
+	account_service "github.com/guths/caju-transaction-approver/internal/account/infra/service"
 	merchant_service "github.com/guths/caju-transaction-approver/internal/merchant/infra/service"
 	"github.com/guths/caju-transaction-approver/internal/transaction/domain"
 	"github.com/guths/caju-transaction-approver/internal/transaction/infra/repository"
@@ -14,6 +13,7 @@ type AuthorizeTransactionUseCase struct {
 	balanceService  service.BalanceService
 	merchantService merchant_service.MerchantService
 	mccService      service.MccService
+	accountService  account_service.AccountService
 }
 
 type InputTransactionDTO struct {
@@ -41,7 +41,11 @@ func NewAuthorizeTransactionUseCase(balanceService service.BalanceService) Autho
 
 func (uc *AuthorizeTransactionUseCase) Execute(inputAuthorizeTransactionDTO InputTransactionDTO) domain.Response {
 	amount := decimal.NewFromFloat(inputAuthorizeTransactionDTO.TotalAmount)
-	accountId, err := strconv.Atoi(inputAuthorizeTransactionDTO.Account)
+	account, err := uc.accountService.GetAccountByIdentifier(inputAuthorizeTransactionDTO.Account)
+
+	if err != nil {
+		return domain.GetGenericResponseError(err.Error())
+	}
 
 	if err != nil {
 		return domain.GetGenericResponseError(err.Error())
@@ -56,7 +60,7 @@ func (uc *AuthorizeTransactionUseCase) Execute(inputAuthorizeTransactionDTO Inpu
 	category, err := uc.mccService.GetCategoryByMcc(inputAuthorizeTransactionDTO.Mcc)
 
 	if err == nil {
-		transaction, err := uc.balanceService.DebitAmount(accountId, category.Id, amount)
+		transaction, err := uc.balanceService.DebitAmount(account.Id, category.Id, amount)
 
 		if err == nil {
 			return domain.GetApprovedResponse()
@@ -66,7 +70,7 @@ func (uc *AuthorizeTransactionUseCase) Execute(inputAuthorizeTransactionDTO Inpu
 			return domain.GetGenericResponseError(err.Error())
 		}
 
-		_, err = uc.balanceService.DebitAmount(accountId, fallbackCategory.Id, amount)
+		_, err = uc.balanceService.DebitAmount(account.Id, fallbackCategory.Id, amount)
 
 		if err == nil {
 			return domain.GetApprovedResponse()
@@ -85,7 +89,7 @@ func (uc *AuthorizeTransactionUseCase) Execute(inputAuthorizeTransactionDTO Inpu
 		return domain.GetGenericResponseError(err.Error())
 	}
 
-	_, err = uc.balanceService.DebitAmount(accountId, c.Id, amount)
+	_, err = uc.balanceService.DebitAmount(account.Id, c.Id, amount)
 
 	if err == nil {
 		return domain.GetApprovedResponse()
@@ -95,7 +99,7 @@ func (uc *AuthorizeTransactionUseCase) Execute(inputAuthorizeTransactionDTO Inpu
 		return domain.GetGenericResponseError(err.Error())
 	}
 
-	_, err = uc.balanceService.DebitAmount(accountId, fallbackCategory.Id, amount)
+	_, err = uc.balanceService.DebitAmount(account.Id, fallbackCategory.Id, amount)
 
 	if err != nil {
 		return domain.GetRejectedResponse()

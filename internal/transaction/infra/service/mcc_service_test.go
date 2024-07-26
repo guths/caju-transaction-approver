@@ -12,14 +12,14 @@ import (
 	"github.com/guths/caju-transaction-approver/internal/transaction/infra/service"
 )
 
-func TearDown(db *sql.DB, t *testing.T) {
+var mccTables = []string{"mcc", "category"}
+
+func TearDown(tables []string, db *sql.DB, t *testing.T) {
 	_, err := db.Exec("SET FOREIGN_KEY_CHECKS = 0")
 
 	if err != nil {
 		log.Fatalf("Failed to disable foreign key checks: %v", err)
 	}
-
-	tables := []string{"mcc", "category"}
 
 	for _, table := range tables {
 		query := fmt.Sprintf("DELETE FROM %s", table)
@@ -38,7 +38,7 @@ func TearDown(db *sql.DB, t *testing.T) {
 }
 
 func TestGetCategoryByMcc(t *testing.T) {
-	defer TearDown(configs.DB, t)
+	defer TearDown(mccTables, configs.DB, t)
 
 	mccFactory := factory.NewMccFactory(configs.DB)
 
@@ -69,7 +69,7 @@ func TestGetCategoryByMcc(t *testing.T) {
 }
 
 func TestGetCategoryNotFoundByMcc(t *testing.T) {
-	defer TearDown(configs.DB, t)
+	defer TearDown(mccTables, configs.DB, t)
 	repo := repository.NewMccRepository(configs.DB)
 
 	service := service.NewMccService(repo)

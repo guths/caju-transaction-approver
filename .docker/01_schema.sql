@@ -1,6 +1,7 @@
 CREATE TABLE account (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    `name` VARCHAR(255) NOT NULL
+    account_identifier VARCHAR(255) NOT NULL UNIQUE,
+    `name` VARCHAR(255) NOT NULL,
 );
 
 CREATE TABLE category (
