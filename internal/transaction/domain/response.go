@@ -15,7 +15,7 @@ func GetApprovedResponse() Response {
 func GetRejectedResponse() Response {
 	return Response{
 		code:    "51",
-		message: "insufficient founds",
+		message: "insufficient funds",
 	}
 }
 

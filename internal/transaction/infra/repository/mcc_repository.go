@@ -47,17 +47,15 @@ func (repo *mysqlMccRepository) GetFallbackCategory() (*domain.Category, error) 
 	return &category, nil
 }
 
-func (repo *mysqlMccRepository) GetCategoryByMcc(mmc string) (domain.Category, error) {
+func (repo *mysqlMccRepository) GetCategoryByMcc(mcc string) (domain.Category, error) {
 	q := `
 		SELECT category.id, category.name
 		FROM mcc
 		INNER JOIN category 
 		ON mcc.category_id = category.id
-		WHERE mcc.mcc = $1
+		WHERE mcc.mcc = ?
 	`
-	args := []interface{}{
-		mmc,
-	}
+	args := []interface{}{mcc}
 
 	var category domain.Category
 
@@ -65,6 +63,8 @@ func (repo *mysqlMccRepository) GetCategoryByMcc(mmc string) (domain.Category, e
 		&category.Id,
 		&category.Name,
 	)
+
+	fmt.Printf("CATEGORY %v", category)
 
 	if err != nil {
 		switch {

@@ -24,27 +24,3 @@ func (s *BalanceService) DebitAmount(accountId int, categoryId int, amount decim
 
 	return transaction, nil
 }
-
-func (s *BalanceService) GetAmountByAccountId(accountId int, categoryId int) (decimal.Decimal, error) {
-	balance, err := s.repo.GetBalanceByAccountId(categoryId, accountId)
-
-	if err != nil {
-		return decimal.Zero, err
-	}
-
-	return balance.Amount, nil
-}
-
-func (s *BalanceService) GetFallbackBalanceAmount(accountId int) (decimal.Decimal, error) {
-	balance, err := s.repo.GetFallbackBalance(accountId)
-
-	if err != nil {
-		return decimal.Zero, err
-	}
-
-	return balance.Amount, nil
-}
-
-func (s *BalanceService) IsBalanceSufficient(amountToDebit decimal.Decimal, accountAmount decimal.Decimal) bool {
-	return accountAmount.GreaterThan(amountToDebit)
-}

@@ -32,9 +32,13 @@ services:
     env_file:
       - ./.docker/dev.env
     volumes:
-        - ./.docker/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./.docker/01_schema.sql:/docker-entrypoint-initdb.d/01_schema.sql
+      - ./.docker/02_data_dev.sql:/docker-entrypoint-initdb.d/02_data.sql
   mysql_test:
     <<: *mysql
     env_file:
       - ./.docker/test.env
+    volumes:
+      - ./.docker/01_schema.sql:/docker-entrypoint-initdb.d/01_schema.sql
+
     

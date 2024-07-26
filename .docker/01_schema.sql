@@ -11,13 +11,14 @@ CREATE TABLE category (
 
 CREATE TABLE merchant (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    `name` VARCHAR(255) NOT NULL
+    `name` VARCHAR(255) NOT NULL,
     category_id INT NOT NULL,
+    FOREIGN KEY (category_id) REFERENCES category(id)
 );
 
 CREATE TABLE mcc (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    mmc INT NOT NULL UNIQUE,
+    mcc VARCHAR(30) NOT NULL UNIQUE,
     category_id INT NOT NULL,
     FOREIGN KEY (category_id) REFERENCES category(id)
 );
@@ -27,12 +28,12 @@ CREATE TABLE balance (
     account_id INT NOT NULL,
     amount DECIMAL(10, 2) NOT NULL DEFAULT 0,
     category_id INT NOT NULL,
-    FOREIGN KEY (account_id) REFERENCES account(ID),
-    FOREIGN KEY (category_id) REFERENCES category(ID)
+    FOREIGN KEY (account_id) REFERENCES account(id),
+    FOREIGN KEY (category_id) REFERENCES category(id)
 );
 
-CREATE TABLE `transation` (
-    ID INT PRIMARY KEY AUTO_INCREMENT,
+CREATE TABLE transaction (
+    id INT PRIMARY KEY AUTO_INCREMENT,
     account_id INT NOT NULL,
     balance_id INT NOT NULL,
     `type` ENUM('DEBIT', 'CREDIT') NOT NULL,

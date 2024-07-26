@@ -11,6 +11,7 @@ import (
 var DB *sql.DB
 
 type dbConfig struct {
+	host     string
 	name     string
 	user     string
 	password string
@@ -36,9 +37,8 @@ func init() {
 		user:     os.Getenv("MYSQL_USER"),
 		password: os.Getenv("MYSQL_PASSWORD"),
 		db:       os.Getenv("MYSQL_DATABASE"),
+		host:     os.Getenv("MYSQL_HOST"),
 	}
-
-	db.validate()
 
 	db.validate()
 
@@ -46,7 +46,7 @@ func init() {
 }
 
 func buildUrl(db dbConfig) string {
-	return fmt.Sprintf("%s:%s@tcp(mysql:3306)/%s", db.user, db.password, db.db)
+	return fmt.Sprintf("%s:%s@tcp(%s:3306)/%s", db.user, db.password, db.host, db.db)
 }
 
 func connectDB(url string) *sql.DB {
@@ -58,7 +58,7 @@ func connectDB(url string) *sql.DB {
 		panic(err.Error())
 	}
 
-	defer db.Close()
+	// defer db.Close()
 
 	err = db.Ping()
 
