@@ -35,7 +35,7 @@ func (f *CategoryFactory) CreateCategory() (*domain.Category, error) {
 
 	var category domain.Category
 
-	err = f.db.QueryRow(q, id).Scan(&category.Id, &category)
+	err = f.db.QueryRow(q, id).Scan(&category.Id, &category.Name)
 
 	if err != nil {
 		return nil, err

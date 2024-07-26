@@ -64,8 +64,6 @@ func (repo *mysqlMccRepository) GetCategoryByMcc(mcc string) (domain.Category, e
 		&category.Name,
 	)
 
-	fmt.Printf("CATEGORY %v", category)
-
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):

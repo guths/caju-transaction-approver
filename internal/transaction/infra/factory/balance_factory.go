@@ -31,7 +31,7 @@ func (f *BalanceFactory) CreateBalance(accountId int, categoryId int, amount dec
 		return nil, err
 	}
 
-	q = `SELECT id, account_id, category_id, amount FROM balance WHERE id = ?`
+	q = `SELECT id, amount FROM balance WHERE id = ?`
 
 	var balance domain.Balance
 

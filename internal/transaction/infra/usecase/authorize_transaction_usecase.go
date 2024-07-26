@@ -47,10 +47,6 @@ func (uc *AuthorizeTransactionUseCase) Execute(inputAuthorizeTransactionDTO Inpu
 		return domain.GetGenericResponseError(err.Error())
 	}
 
-	if err != nil {
-		return domain.GetGenericResponseError(err.Error())
-	}
-
 	fallbackCategory, err := uc.mccService.GetFallbackCategory()
 
 	if err != nil {

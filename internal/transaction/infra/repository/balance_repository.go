@@ -41,8 +41,8 @@ func (repo *mysqlBalanceRepository) DebitAmount(accountId int, categoryId int, a
 	q := `
 		SELECT id, amount
 		FROM balance
-		WHERE account_id = $1
-		AND category_id = $2
+		WHERE account_id = ?
+		AND category_id = ?
 	`
 
 	args := []interface{}{
@@ -66,6 +66,8 @@ func (repo *mysqlBalanceRepository) DebitAmount(accountId int, categoryId int, a
 		return nil, ErrInsufficientFunds
 	}
 
+	newBalance := currentBalance.Amount.Sub(amount)
+
 	q = `
 		UPDATE balance
 		SET amount = ?
@@ -73,7 +75,7 @@ func (repo *mysqlBalanceRepository) DebitAmount(accountId int, categoryId int, a
 		AND category_id = ?
 	`
 
-	_, err = tx.Exec(q, amount, accountId, categoryId)
+	_, err = tx.Exec(q, newBalance, accountId, categoryId)
 
 	if err != nil {
 		return nil, ErrUpdatingBalance
@@ -81,7 +83,7 @@ func (repo *mysqlBalanceRepository) DebitAmount(accountId int, categoryId int, a
 
 	q = `
 		INSERT INTO transaction (account_id, balance_id, type, amount)
-		VALUES ($1, $2, $3, $4)
+		VALUES (?, ?, ?, ?)
 	`
 
 	args = []interface{}{

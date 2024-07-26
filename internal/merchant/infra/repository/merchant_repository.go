@@ -1,8 +1,7 @@
-package repositories
+package repository
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 
 	"github.com/guths/caju-transaction-approver/internal/merchant/domain"
@@ -40,10 +39,11 @@ func (repo *mysqlMerchantRepository) GetCategoryByMerchantName(name string) (*tr
 	)
 
 	if err != nil {
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
+		if err == sql.ErrNoRows {
 			return nil, ErrCategoryNotFound
 		}
+
+		return nil, err
 	}
 
 	return &category, nil
