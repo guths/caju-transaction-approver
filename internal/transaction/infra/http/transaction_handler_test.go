@@ -58,29 +58,29 @@ func init() {
 	server = cmd.GetServer()
 }
 
-// func TestAuthorizeTransactionWithInvalidRequestFormat(t *testing.T) {
-// 	w := httptest.NewRecorder()
+func TestAuthorizeTransactionWithInvalidRequestFormat(t *testing.T) {
+	w := httptest.NewRecorder()
 
-// 	for _, invalidRequestFormat := range invalidRequestsFormats {
-// 		json, err := json.Marshal(invalidRequestFormat)
+	for _, invalidRequestFormat := range invalidRequestsFormats {
+		json, err := json.Marshal(invalidRequestFormat)
 
-// 		if err != nil {
-// 			t.Errorf("error marshalling payload: %v", err)
-// 		}
+		if err != nil {
+			t.Errorf("error marshalling payload: %v", err)
+		}
 
-// 		req := httptest.NewRequest("POST", "/authorize-transaction", strings.NewReader(string(json)))
+		req := httptest.NewRequest("POST", "/authorize-transaction", strings.NewReader(string(json)))
 
-// 		server.ServeHTTP(w, req)
+		server.ServeHTTP(w, req)
 
-// 		if w.Code != 200 {
-// 			t.Errorf("expected status code 200, got %d", w.Code)
-// 		}
+		if w.Code != 200 {
+			t.Errorf("expected status code 200, got %d", w.Code)
+		}
 
-// 		if !strings.Contains(w.Body.String(), "invalid request format") {
-// 			t.Errorf("expected response to contain 'invalid request format'")
-// 		}
-// 	}
-// }
+		if !strings.Contains(w.Body.String(), "invalid request format") {
+			t.Errorf("expected response to contain 'invalid request format'")
+		}
+	}
+}
 
 func TestAuthorizeTransactionWithSuccess(t *testing.T) {
 	defer configs.TearDown([]string{"account", "balance", "category", "merchant", "mcc", "transaction"}, configs.DB, t)
