@@ -19,7 +19,12 @@ var CmdServe = &cobra.Command{
 	Short: "Command to start the api",
 	Run: func(cmd *cobra.Command, args []string) {
 		server := GetServer()
-		server.Run()
+		err := server.Run()
+
+		if err != nil {
+			panic(err)
+		}
+
 	},
 }
 

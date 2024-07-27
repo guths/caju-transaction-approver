@@ -93,7 +93,7 @@ func (repo *mysqlBalanceRepository) DebitAmount(accountId int, categoryId int, a
 	result, err := tx.Exec(q, args...)
 
 	if err != nil {
-		tx.Rollback()
+		_ = tx.Rollback()
 		return nil, ErrCreatingTransaction
 	}
 
