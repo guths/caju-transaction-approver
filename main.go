@@ -8,5 +8,8 @@ import (
 func main() {
 	var rootCmd = &cobra.Command{Use: "app"}
 	rootCmd.AddCommand(cmd.CmdServe)
-	rootCmd.Execute()
+	err := rootCmd.Execute()
+	if err != nil {
+		panic(err)
+	}
 }

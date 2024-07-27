@@ -34,7 +34,7 @@ func (repo *mysqlBalanceRepository) DebitAmount(accountId int, categoryId int, a
 		return nil, err
 	}
 
-	defer tx.Rollback()
+	// err =  defer tx.Rollback()
 
 	var currentBalance domain.Balance
 
