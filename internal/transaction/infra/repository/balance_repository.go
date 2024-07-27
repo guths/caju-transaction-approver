@@ -34,7 +34,12 @@ func (repo *mysqlBalanceRepository) DebitAmount(accountId int, categoryId int, a
 		return nil, err
 	}
 
-	// err =  defer tx.Rollback()
+	defer func() {
+		err = tx.Rollback()
+		if err != nil {
+			fmt.Println("Error rolling back transaction", err)
+		}
+	}()
 
 	var currentBalance domain.Balance
 
@@ -75,8 +80,6 @@ func (repo *mysqlBalanceRepository) DebitAmount(accountId int, categoryId int, a
 	if err != nil {
 		return nil, ErrUpdatingBalance
 	}
-
-	fmt.Println("AMOUNT", amount)
 
 	q = `
 		INSERT INTO transaction (account_id, balance_id, type, amount)
