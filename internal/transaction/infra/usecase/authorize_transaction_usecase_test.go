@@ -265,3 +265,268 @@ func TestAuthorizeTransactionWithCorrectMccAndDebitFromFallbackBalance(t *testin
 		t.Errorf("Expected balance 0, got %s", currentFallBackBalance.Amount.String())
 	}
 }
+
+func TestAuthorizeTransactionWithCorrectMccAndDebitFromFallbackBalanceWithoutFunds(t *testing.T) {
+	defer configs.TearDown([]string{"account", "balance", "category", "merchant", "mcc", "transaction"}, configs.DB, t)
+	accountFactory := account_factory.NewAccountFactory(configs.DB)
+	categoryFactory := factory.NewCategoryFactory(configs.DB)
+	mccFactory := factory.NewMccFactory(configs.DB)
+	balanceFactory := factory.NewBalanceFactory(configs.DB)
+	merchantFactory := merchant_factory.NewMerchantFactory(configs.DB)
+
+	account, err := accountFactory.CreateAccount()
+
+	if err != nil {
+		t.Errorf("Error creating account: %v", err)
+	}
+
+	c, err := categoryFactory.CreateCategory(true)
+
+	if err != nil {
+		t.Errorf("Error creating category: %v", err)
+	}
+
+	merchant, err := merchantFactory.CreateMerchant("merchant", c.Id)
+
+	if err != nil {
+		t.Errorf("Error creating merchant: %v", err)
+	}
+
+	err = mccFactory.CreateMccWithCategory()
+
+	if err != nil {
+		t.Errorf("Error creating mcc: %v", err)
+	}
+
+	if err != nil {
+		t.Errorf("Error creating category: %v", err)
+	}
+
+	_, err = balanceFactory.CreateBalance(account.Id, 1, decimal.New(100, 0))
+
+	if err != nil {
+		t.Errorf("Error creating balance: %v", err)
+	}
+
+	input := usecase.InputTransactionDTO{
+		Account:     account.AccountIdentifier,
+		TotalAmount: 200.00,
+		Mcc:         "5412",
+		Merchant:    merchant.Name,
+	}
+
+	response := authorizeTransactionUseCase.Execute(input)
+
+	if response.Code != "51" {
+		t.Errorf("Expected code 51, got %s", response.Code)
+	}
+
+	if response.Message != "insufficient funds" {
+		t.Errorf("Expected message 'insufficient funds', got %s", response.Message)
+	}
+}
+
+func TestAuthorizeTransactionWithIncorrectMccAndDebitFromCorrentBalanceWithFunds(t *testing.T) {
+	defer configs.TearDown([]string{"account", "balance", "category", "merchant", "mcc", "transaction"}, configs.DB, t)
+	accountFactory := account_factory.NewAccountFactory(configs.DB)
+	categoryFactory := factory.NewCategoryFactory(configs.DB)
+	mccFactory := factory.NewMccFactory(configs.DB)
+	balanceFactory := factory.NewBalanceFactory(configs.DB)
+	merchantFactory := merchant_factory.NewMerchantFactory(configs.DB)
+
+	account, err := accountFactory.CreateAccount()
+
+	if err != nil {
+		t.Errorf("Error creating account: %v", err)
+	}
+
+	_, err = categoryFactory.CreateCategory(true)
+
+	if err != nil {
+		t.Errorf("Error creating category: %v", err)
+	}
+
+	err = mccFactory.CreateMccWithCategory()
+
+	if err != nil {
+		t.Errorf("Error creating mcc: %v", err)
+	}
+
+	merchant, err := merchantFactory.CreateMerchant("merchant", 2)
+
+	if err != nil {
+		t.Errorf("Error creating merchant: %v", err)
+	}
+
+	if err != nil {
+		t.Errorf("Error creating category: %v", err)
+	}
+
+	balance, err := balanceFactory.CreateBalance(account.Id, 2, decimal.New(100, 0))
+
+	fmt.Printf("%v\n", balance)
+	if err != nil {
+		t.Errorf("Error creating balance: %v", err)
+	}
+
+	input := usecase.InputTransactionDTO{
+		Account:     account.AccountIdentifier,
+		TotalAmount: 90.00,
+		Mcc:         "xxxx",
+		Merchant:    merchant.Name,
+	}
+
+	response := authorizeTransactionUseCase.Execute(input)
+
+	if response.Code != "00" {
+		t.Errorf("Expected code 00, got %s", response.Code)
+	}
+
+	currentBalance, err := balanceService.GetBalance(account.Id, 2)
+
+	if err != nil {
+		t.Errorf("Error getting balance: %v", err)
+	}
+
+	if currentBalance.Amount.String() != "10" {
+		t.Errorf("Expected balance 10, got %s", currentBalance.Amount.String())
+	}
+}
+
+func TestAuthorizeTransactionWithIncorrectMccAndDebitFromFallbackBalanceWithFunds(t *testing.T) {
+	defer configs.TearDown([]string{"account", "balance", "category", "merchant", "mcc", "transaction"}, configs.DB, t)
+	accountFactory := account_factory.NewAccountFactory(configs.DB)
+	categoryFactory := factory.NewCategoryFactory(configs.DB)
+	mccFactory := factory.NewMccFactory(configs.DB)
+	balanceFactory := factory.NewBalanceFactory(configs.DB)
+	merchantFactory := merchant_factory.NewMerchantFactory(configs.DB)
+
+	account, err := accountFactory.CreateAccount()
+
+	if err != nil {
+		t.Errorf("Error creating account: %v", err)
+	}
+
+	_, err = categoryFactory.CreateCategory(true)
+
+	if err != nil {
+		t.Errorf("Error creating category: %v", err)
+	}
+
+	err = mccFactory.CreateMccWithCategory()
+
+	if err != nil {
+		t.Errorf("Error creating mcc: %v", err)
+	}
+
+	merchant, err := merchantFactory.CreateMerchant("merchant", 2)
+
+	if err != nil {
+		t.Errorf("Error creating merchant: %v", err)
+	}
+
+	if err != nil {
+		t.Errorf("Error creating category: %v", err)
+	}
+
+	_, err = balanceFactory.CreateBalance(account.Id, 2, decimal.New(50, 0))
+
+	if err != nil {
+		t.Errorf("Error creating balance: %v", err)
+	}
+
+	_, err = balanceFactory.CreateBalance(account.Id, 1, decimal.New(100, 0))
+
+	if err != nil {
+		t.Errorf("Error creating balance: %v", err)
+	}
+
+	input := usecase.InputTransactionDTO{
+		Account:     account.AccountIdentifier,
+		TotalAmount: 90.00,
+		Mcc:         "xxxx",
+		Merchant:    merchant.Name,
+	}
+
+	response := authorizeTransactionUseCase.Execute(input)
+
+	if response.Code != "00" {
+		t.Errorf("Expected code 00, got %s", response.Code)
+	}
+
+	currentBalance, err := balanceService.GetBalance(account.Id, 1)
+
+	if err != nil {
+		t.Errorf("Error getting balance: %v", err)
+	}
+
+	if currentBalance.Amount.String() != "10" {
+		t.Errorf("Expected balance 10, got %s", currentBalance.Amount.String())
+	}
+}
+
+func TestAuthorizeTransactionWithIncorrectMccAndDebitFromFallbackBalanceWithoutFunds(t *testing.T) {
+	defer configs.TearDown([]string{"account", "balance", "category", "merchant", "mcc", "transaction"}, configs.DB, t)
+	accountFactory := account_factory.NewAccountFactory(configs.DB)
+	categoryFactory := factory.NewCategoryFactory(configs.DB)
+	mccFactory := factory.NewMccFactory(configs.DB)
+	balanceFactory := factory.NewBalanceFactory(configs.DB)
+	merchantFactory := merchant_factory.NewMerchantFactory(configs.DB)
+
+	account, err := accountFactory.CreateAccount()
+
+	if err != nil {
+		t.Errorf("Error creating account: %v", err)
+	}
+
+	_, err = categoryFactory.CreateCategory(true)
+
+	if err != nil {
+		t.Errorf("Error creating category: %v", err)
+	}
+
+	err = mccFactory.CreateMccWithCategory()
+
+	if err != nil {
+		t.Errorf("Error creating mcc: %v", err)
+	}
+
+	merchant, err := merchantFactory.CreateMerchant("merchant", 2)
+
+	if err != nil {
+		t.Errorf("Error creating merchant: %v", err)
+	}
+
+	if err != nil {
+		t.Errorf("Error creating category: %v", err)
+	}
+
+	_, err = balanceFactory.CreateBalance(account.Id, 2, decimal.New(50, 0))
+
+	if err != nil {
+		t.Errorf("Error creating balance: %v", err)
+	}
+
+	_, err = balanceFactory.CreateBalance(account.Id, 1, decimal.New(80, 0))
+
+	if err != nil {
+		t.Errorf("Error creating balance: %v", err)
+	}
+
+	input := usecase.InputTransactionDTO{
+		Account:     account.AccountIdentifier,
+		TotalAmount: 90.00,
+		Mcc:         "xxxx",
+		Merchant:    merchant.Name,
+	}
+
+	response := authorizeTransactionUseCase.Execute(input)
+
+	if response.Code != "51" {
+		t.Errorf("Expected code 51, got %s", response.Code)
+	}
+
+	if response.Message != "insufficient funds" {
+		t.Errorf("Expected message 'insufficient funds', got %s", response.Message)
+	}
+}

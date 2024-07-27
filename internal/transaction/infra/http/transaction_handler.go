@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/guths/caju-transaction-approver/internal/transaction/domain"
 	"github.com/guths/caju-transaction-approver/internal/transaction/infra/usecase"
+	"github.com/guths/caju-transaction-approver/internal/validator"
 )
 
 type TransactionHandler struct {
@@ -24,6 +25,12 @@ func (h *TransactionHandler) AuthorizeTransaction(c *gin.Context) {
 	var inputTransactionDTO usecase.InputTransactionDTO
 
 	if err := c.ShouldBindBodyWithJSON(&inputTransactionDTO); err != nil {
+		c.JSON(http.StatusOK, gin.H{"error": domain.GetGenericResponseError("invalid request format")})
+	}
+
+	v := validator.New()
+
+	if usecase.ValidateInputTransaction(v, inputTransactionDTO); v.Errors != nil {
 		c.JSON(http.StatusOK, gin.H{"error": domain.GetGenericResponseError("invalid request format")})
 	}
 

@@ -8,6 +8,7 @@ import (
 	"github.com/guths/caju-transaction-approver/internal/transaction/domain"
 	"github.com/guths/caju-transaction-approver/internal/transaction/infra/repository"
 	"github.com/guths/caju-transaction-approver/internal/transaction/infra/service"
+	"github.com/guths/caju-transaction-approver/internal/validator"
 	"github.com/shopspring/decimal"
 )
 
@@ -23,6 +24,17 @@ type InputTransactionDTO struct {
 	TotalAmount float64 `json:"total_amount"`
 	Mcc         string  `json:"mcc"`
 	Merchant    string  `json:"merchant"`
+}
+
+func ValidateInputTransaction(v *validator.Validator, input InputTransactionDTO) {
+	v.Check(input.Account != "", "account", "account is required")
+	v.Check(validator.IsString(input.Account), "account", "account must be a string")
+	v.Check(input.TotalAmount > 0, "total_amount", "total_amount must be greater than 0")
+	v.Check(validator.IsValidFloatPattern(input.TotalAmount), "total_amount", "total_amount must have 2 decimal places")
+	v.Check(input.Merchant != "", "merchant", "merchant is required")
+	v.Check(validator.IsString(input.Merchant), "merchant", "merchant must be a string")
+	v.Check(input.Mcc != "", "mcc", "mcc is required")
+	v.Check(validator.IsString(input.Mcc), "mcc", "mcc must be a string")
 }
 
 type OutputTransactionDTO struct {
@@ -82,7 +94,6 @@ func (uc *AuthorizeTransactionUseCase) Execute(inputAuthorizeTransactionDTO Inpu
 			return domain.GetApprovedResponse()
 		}
 
-		//teste fallback, com saldo insuficiente
 		return domain.GetRejectedResponse()
 	}
 
@@ -90,7 +101,6 @@ func (uc *AuthorizeTransactionUseCase) Execute(inputAuthorizeTransactionDTO Inpu
 		return domain.GetGenericResponseError(err.Error())
 	}
 
-	//teste mcc incorreto, com merchant sem categoria cadastrada
 	c, err := uc.merchantService.GetCategoryByMerchantName(inputAuthorizeTransactionDTO.Merchant)
 
 	if err != nil {
@@ -101,7 +111,6 @@ func (uc *AuthorizeTransactionUseCase) Execute(inputAuthorizeTransactionDTO Inpu
 	_, err = uc.balanceService.DebitAmount(account.Id, c.Id, amount)
 
 	if err == nil {
-		//teste mcc incorreto, com saldo suficiente
 		return domain.GetApprovedResponse()
 	}
 
@@ -112,10 +121,8 @@ func (uc *AuthorizeTransactionUseCase) Execute(inputAuthorizeTransactionDTO Inpu
 	_, err = uc.balanceService.DebitAmount(account.Id, fallbackCategory.Id, amount)
 
 	if err != nil {
-		//teste mcc incorreto, no fallback, com saldo insuficiente
 		return domain.GetRejectedResponse()
 	}
 
-	//teste mcc incorreto, no fallback, com saldo suficiente
 	return domain.GetApprovedResponse()
 }
