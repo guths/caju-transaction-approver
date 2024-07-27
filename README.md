@@ -1,6 +1,6 @@
 # Teste backend empresa Caju
 
-Foi escolhido a linguagem Golang por conta de afinidade e simplcidade, tentei ao máximo não usar bibliotecas externas para demonstrar minhas hardskills.
+Foi escolhido a linguagem Golang por conta de afinidade e simplicidade, tentei ao máximo não usar bibliotecas externas para demonstrar minhas hardskills.
 
 ## Stack
 
@@ -37,5 +37,5 @@ docker compose run test
 #### Implementações extras
 
 - Foi adicionado um workflow de ci no github actions que:
-  - Realiza lint do código (sonarcube)
+  - Realiza lint do código (golint)
   - Roda os testes ao publicar mudanças na branch
