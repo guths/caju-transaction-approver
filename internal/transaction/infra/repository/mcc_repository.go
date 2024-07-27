@@ -67,7 +67,7 @@ func (repo *mysqlMccRepository) GetCategoryByMcc(mcc string) (domain.Category, e
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return domain.Category{}, err
+			return domain.Category{}, ErrCategoryNotFound
 		}
 	}
 

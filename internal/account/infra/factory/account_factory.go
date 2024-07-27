@@ -15,10 +15,9 @@ func NewAccountFactory(db *sql.DB) *AccountFactory {
 }
 
 func (f *AccountFactory) CreateAccount() (*domain.Account, error) {
-	q := ` INSERT INTO account (account_identifier, name) VALUES (?, ?)`
+	q := `INSERT INTO account (account_identifier, name) VALUES (?, ?)`
 
 	result, err := f.db.Exec(q, "123", "John Doe")
-
 	if err != nil {
 		return nil, err
 	}
@@ -32,9 +31,7 @@ func (f *AccountFactory) CreateAccount() (*domain.Account, error) {
 	q = `SELECT id, account_identifier, name FROM account WHERE id = ?`
 
 	var account domain.Account
-
 	err = f.db.QueryRow(q, id).Scan(&account.Id, &account.AccountIdentifier, &account.Name)
-
 	if err != nil {
 		return nil, err
 	}

@@ -15,7 +15,7 @@ func TestCategoryByMerchantName(t *testing.T) {
 	factory := factory.NewMerchantFactory(configs.DB)
 	categoryFactory := category_factory.NewCategoryFactory(configs.DB)
 
-	category, err := categoryFactory.CreateCategory()
+	category, err := categoryFactory.CreateCategory(false)
 
 	if err != nil {
 		t.Fatalf("error executing factory")
@@ -47,7 +47,7 @@ func TestCategoryNotFoundByMerchantName(t *testing.T) {
 	factory := factory.NewMerchantFactory(configs.DB)
 	categoryFactory := category_factory.NewCategoryFactory(configs.DB)
 
-	c, err := categoryFactory.CreateCategory()
+	c, err := categoryFactory.CreateCategory(false)
 
 	if err != nil {
 		t.Fatalf("error executing factory")

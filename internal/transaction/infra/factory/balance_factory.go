@@ -31,11 +31,11 @@ func (f *BalanceFactory) CreateBalance(accountId int, categoryId int, amount dec
 		return nil, err
 	}
 
-	q = `SELECT id, amount FROM balance WHERE id = ?`
+	q = `SELECT id, amount, account_id, category_id FROM balance WHERE id = ?`
 
 	var balance domain.Balance
 
-	err = f.db.QueryRow(q, id).Scan(&balance.Id, &balance.Amount)
+	err = f.db.QueryRow(q, id).Scan(&balance.Id, &balance.Amount, &balance.AccountId, &balance.CategoryId)
 
 	if err != nil {
 		return nil, err

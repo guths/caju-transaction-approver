@@ -45,12 +45,7 @@ func (repo *mysqlBalanceRepository) DebitAmount(accountId int, categoryId int, a
 		AND category_id = ?
 	`
 
-	args := []interface{}{
-		accountId,
-		categoryId,
-	}
-
-	err = tx.QueryRow(q, args...).Scan(
+	err = tx.QueryRow(q, accountId, categoryId).Scan(
 		&currentBalance.Id,
 		&currentBalance.Amount,
 	)
@@ -62,6 +57,8 @@ func (repo *mysqlBalanceRepository) DebitAmount(accountId int, categoryId int, a
 		}
 	}
 
+	fmt.Println("CURRENT BALANCE", currentBalance.Amount)
+	fmt.Println("AMOUNT", amount)
 	if ok := isTransactionAllowed(currentBalance.Amount, amount); !ok {
 		return nil, ErrInsufficientFunds
 	}
@@ -86,7 +83,7 @@ func (repo *mysqlBalanceRepository) DebitAmount(accountId int, categoryId int, a
 		VALUES (?, ?, ?, ?)
 	`
 
-	args = []interface{}{
+	args := []interface{}{
 		accountId,
 		currentBalance.Id,
 		domain.Debit,
@@ -132,5 +129,35 @@ func (repo *mysqlBalanceRepository) DebitAmount(accountId int, categoryId int, a
 }
 
 func isTransactionAllowed(currentBalance decimal.Decimal, amount decimal.Decimal) bool {
-	return currentBalance.GreaterThan(amount)
+	return currentBalance.GreaterThan(amount) || currentBalance.Equal(amount)
+}
+
+func (repo *mysqlBalanceRepository) GetBalance(accountId int, categoryId int) (*domain.Balance, error) {
+	q := `
+		SELECT id, amount
+		FROM balance
+		WHERE account_id = ?
+		AND category_id = ?
+	`
+
+	args := []interface{}{
+		accountId,
+		categoryId,
+	}
+
+	var balance domain.Balance
+
+	err := repo.db.QueryRow(q, args...).Scan(
+		&balance.Id,
+		&balance.Amount,
+	)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrBalanceNotFound
+		}
+	}
+
+	return &balance, nil
 }

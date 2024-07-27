@@ -16,10 +16,10 @@ func NewCategoryFactory(db *sql.DB) CategoryFactory {
 	}
 }
 
-func (f *CategoryFactory) CreateCategory() (*domain.Category, error) {
-	q := ` INSERT INTO category (name) VALUES (?)`
+func (f *CategoryFactory) CreateCategory(isFallback bool) (*domain.Category, error) {
+	q := ` INSERT INTO category (name, is_fallback) VALUES (?, ?)`
 
-	result, err := f.db.Exec(q, "FOOD")
+	result, err := f.db.Exec(q, "FOOD", isFallback)
 
 	if err != nil {
 		return nil, err

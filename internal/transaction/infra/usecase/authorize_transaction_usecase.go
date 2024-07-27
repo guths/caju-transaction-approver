@@ -1,6 +1,8 @@
 package usecase
 
 import (
+	"fmt"
+
 	account_service "github.com/guths/caju-transaction-approver/internal/account/infra/service"
 	merchant_service "github.com/guths/caju-transaction-approver/internal/merchant/infra/service"
 	"github.com/guths/caju-transaction-approver/internal/transaction/domain"
@@ -33,9 +35,17 @@ type OutputTransactionDTO struct {
 	TransactionID    int             `json:"transaction_id"`
 }
 
-func NewAuthorizeTransactionUseCase(balanceService service.BalanceService) AuthorizeTransactionUseCase {
+func NewAuthorizeTransactionUseCase(
+	balanceService service.BalanceService,
+	merchantService merchant_service.MerchantService,
+	mccService service.MccService,
+	accountService account_service.AccountService,
+) AuthorizeTransactionUseCase {
 	return AuthorizeTransactionUseCase{
-		balanceService: balanceService,
+		balanceService:  balanceService,
+		merchantService: merchantService,
+		mccService:      mccService,
+		accountService:  accountService,
 	}
 }
 
@@ -72,6 +82,7 @@ func (uc *AuthorizeTransactionUseCase) Execute(inputAuthorizeTransactionDTO Inpu
 			return domain.GetApprovedResponse()
 		}
 
+		//teste fallback, com saldo insuficiente
 		return domain.GetRejectedResponse()
 	}
 
@@ -79,15 +90,18 @@ func (uc *AuthorizeTransactionUseCase) Execute(inputAuthorizeTransactionDTO Inpu
 		return domain.GetGenericResponseError(err.Error())
 	}
 
+	//teste mcc incorreto, com merchant sem categoria cadastrada
 	c, err := uc.merchantService.GetCategoryByMerchantName(inputAuthorizeTransactionDTO.Merchant)
 
 	if err != nil {
+		fmt.Println(err)
 		return domain.GetGenericResponseError(err.Error())
 	}
 
 	_, err = uc.balanceService.DebitAmount(account.Id, c.Id, amount)
 
 	if err == nil {
+		//teste mcc incorreto, com saldo suficiente
 		return domain.GetApprovedResponse()
 	}
 
@@ -98,8 +112,10 @@ func (uc *AuthorizeTransactionUseCase) Execute(inputAuthorizeTransactionDTO Inpu
 	_, err = uc.balanceService.DebitAmount(account.Id, fallbackCategory.Id, amount)
 
 	if err != nil {
+		//teste mcc incorreto, no fallback, com saldo insuficiente
 		return domain.GetRejectedResponse()
 	}
 
+	//teste mcc incorreto, no fallback, com saldo suficiente
 	return domain.GetApprovedResponse()
 }

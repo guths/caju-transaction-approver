@@ -24,3 +24,13 @@ func (s *BalanceService) DebitAmount(accountId int, categoryId int, amount decim
 
 	return transaction, nil
 }
+
+func (s *BalanceService) GetBalance(accountId int, categoryId int) (*domain.Balance, error) {
+	balance, err := s.repo.GetBalance(accountId, categoryId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return balance, nil
+}

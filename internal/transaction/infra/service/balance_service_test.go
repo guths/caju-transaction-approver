@@ -21,12 +21,11 @@ func TestDebitAccountAmountWithFunds(t *testing.T) {
 	balanceFactory := factory.NewBalanceFactory(configs.DB)
 
 	account, err := accountFactory.CreateAccount()
-
 	if err != nil {
 		t.Error(err.Error())
 	}
 
-	category, err := categoryFactory.CreateCategory()
+	category, err := categoryFactory.CreateCategory(false)
 
 	if err != nil {
 		t.Fatalf(err.Error())
@@ -87,7 +86,7 @@ func TestDebitAccountWithInsufficientFunds(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	category, err := categoryFactory.CreateCategory()
+	category, err := categoryFactory.CreateCategory(false)
 
 	if err != nil {
 		t.Fatalf(err.Error())
@@ -122,7 +121,7 @@ func TestDebitFromNonExistBalance(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	category, err := categoryFactory.CreateCategory()
+	category, err := categoryFactory.CreateCategory(false)
 
 	if err != nil {
 		t.Fatalf(err.Error())
