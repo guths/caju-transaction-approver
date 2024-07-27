@@ -18,7 +18,7 @@ jobs:
         uses: docker/setup-qemu-action@v2
 
       - name: Build Docker images
-        run: docker-compose -f docker-compose.yaml build
+        run: docker-compose -f build
 
       - name: Run unit tests
         run: docker-compose -f docker-compose.yaml up --abort-on-container-exit --exit-code-from ci 
