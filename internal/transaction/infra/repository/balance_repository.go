@@ -57,8 +57,6 @@ func (repo *mysqlBalanceRepository) DebitAmount(accountId int, categoryId int, a
 		}
 	}
 
-	fmt.Println("CURRENT BALANCE", currentBalance.Amount)
-	fmt.Println("AMOUNT", amount)
 	if ok := isTransactionAllowed(currentBalance.Amount, amount); !ok {
 		return nil, ErrInsufficientFunds
 	}
@@ -77,6 +75,8 @@ func (repo *mysqlBalanceRepository) DebitAmount(accountId int, categoryId int, a
 	if err != nil {
 		return nil, ErrUpdatingBalance
 	}
+
+	fmt.Println("AMOUNT", amount)
 
 	q = `
 		INSERT INTO transaction (account_id, balance_id, type, amount)

@@ -4,13 +4,18 @@ services:
       context: .
       target: base
     working_dir: /app
-    command: go test -v ./...
-    env_file:
-      - ./.docker/test.env
+    command: go test -p=1 ./...
+    environment:
+      - MYSQL_HOST=mysql_test
+      - MYSQL_USER=caju_test
+      - MYSQL_PASSWORD=caju_test
+      - MYSQL_DATABASE=caju_test
     volumes:
       - .:/app
     depends_on:
-      - mysql_test
+      mysql_test:
+        condition: service_healthy
+
   app:
     <<: *defaults
     command: go run ./main.go serve
@@ -34,11 +39,28 @@ services:
     volumes:
       - ./.docker/01_schema.sql:/docker-entrypoint-initdb.d/01_schema.sql
       - ./.docker/02_data_dev.sql:/docker-entrypoint-initdb.d/02_data.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-uroot", "-proot"]
+      interval: 10s
+      retries: 30
+      start_period: 60s
+      timeout: 5s
   mysql_test:
-    <<: *mysql
-    env_file:
-      - ./.docker/test.env
-    volumes:
-      - ./.docker/01_schema.sql:/docker-entrypoint-initdb.d/01_schema.sql
+    build:
+      context: .
+      dockerfile: .docker/mysql/Dockerfile
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: caju_test
+      MYSQL_USER: caju_test
+      MYSQL_PASSWORD: caju_test
+      TZ: "America/Sao_Paulo"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-uroot", "-proot"]
+      interval: 10s
+      retries: 30
+      start_period: 60s
+      timeout: 5s
 
     

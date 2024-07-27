@@ -21,7 +21,7 @@ type AuthorizeTransactionUseCase struct {
 
 type InputTransactionDTO struct {
 	Account     string  `json:"account"`
-	TotalAmount float64 `json:"total_amount"`
+	TotalAmount float64 `json:"totalAmount"`
 	Mcc         string  `json:"mcc"`
 	Merchant    string  `json:"merchant"`
 }
@@ -29,7 +29,7 @@ type InputTransactionDTO struct {
 func ValidateInputTransaction(v *validator.Validator, input InputTransactionDTO) {
 	v.Check(input.Account != "", "account", "account is required")
 	v.Check(validator.IsString(input.Account), "account", "account must be a string")
-	v.Check(input.TotalAmount > 0, "total_amount", "total_amount must be greater than 0")
+	v.Check(input.TotalAmount > 0.00, "total_amount", "total_amount must be greater than 0")
 	v.Check(validator.IsValidFloatPattern(input.TotalAmount), "total_amount", "total_amount must have 2 decimal places")
 	v.Check(input.Merchant != "", "merchant", "merchant is required")
 	v.Check(validator.IsString(input.Merchant), "merchant", "merchant must be a string")

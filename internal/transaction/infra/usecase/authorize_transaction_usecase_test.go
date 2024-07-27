@@ -112,9 +112,8 @@ func TestAuthorizeTransactionWithCorrectMcc(t *testing.T) {
 		t.Errorf("Error creating category: %v", err)
 	}
 
-	balance, err := balanceFactory.CreateBalance(account.Id, 2, decimal.New(100, 0))
+	_, err = balanceFactory.CreateBalance(account.Id, 2, decimal.New(100, 0))
 
-	fmt.Printf("%v\n", balance)
 	if err != nil {
 		t.Errorf("Error creating balance: %v", err)
 	}

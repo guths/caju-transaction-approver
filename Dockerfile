@@ -1,20 +1,17 @@
-FROM golang:1.22-alpine as base
+FROM golang:1.22-alpine AS base
 RUN apk --no-cache update
 
-FROM base as ci
+FROM base AS ci
 WORKDIR /app/
 COPY . .
 RUN go mod tidy
 
-FROM ci as build
+FROM ci AS build
 WORKDIR /app/
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o entrypoint
 
 FROM scratch
 WORKDIR /
-COPY --from=base /usr/local/share/ca-certificates /usr/local/share/ca-certificates
-COPY --from=base /etc/ssl/certs /etc/ssl/certs/
-COPY --from=builder /app/entrypoint .
-COPY --from=builder /app/rev.txt .
+COPY --from=build /app/entrypoint .
 
 ENTRYPOINT [ "/entrypoint" ]

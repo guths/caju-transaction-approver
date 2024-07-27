@@ -18,21 +18,26 @@ var CmdServe = &cobra.Command{
 	Use:   "serve",
 	Short: "Command to start the api",
 	Run: func(cmd *cobra.Command, args []string) {
-		server := gin.New()
-
-		mysqlBalanceRepository := repository.NewBalanceRepository(configs.DB)
-		balanceService := service.NewBalanceService(mysqlBalanceRepository)
-		merchantRepo := merchant_repo.NewMysqlMerchantRepository(configs.DB)
-		merchantService := merchant_service.NewMerchantService(merchantRepo)
-		mccRepo := repository.NewMccRepository(configs.DB)
-		mccService := service.NewMccService(mccRepo)
-		accountRepo := account_repo.NewMysqlAccountRepository(configs.DB)
-		accountService := account_service.NewAccountService(accountRepo)
-		authorizeTransactionUseCase := usecase.NewAuthorizeTransactionUseCase(balanceService, merchantService, mccService, *accountService)
-		transactionHandler := http_handler.NewTransactionHandler(&authorizeTransactionUseCase)
-
-		server.POST("/authorize-transaction", transactionHandler.AuthorizeTransaction)
-
+		server := GetServer()
 		server.Run()
 	},
+}
+
+func GetServer() *gin.Engine {
+	server := gin.New()
+
+	mysqlBalanceRepository := repository.NewBalanceRepository(configs.DB)
+	balanceService := service.NewBalanceService(mysqlBalanceRepository)
+	merchantRepo := merchant_repo.NewMysqlMerchantRepository(configs.DB)
+	merchantService := merchant_service.NewMerchantService(merchantRepo)
+	mccRepo := repository.NewMccRepository(configs.DB)
+	mccService := service.NewMccService(mccRepo)
+	accountRepo := account_repo.NewMysqlAccountRepository(configs.DB)
+	accountService := account_service.NewAccountService(accountRepo)
+	authorizeTransactionUseCase := usecase.NewAuthorizeTransactionUseCase(balanceService, merchantService, mccService, *accountService)
+	transactionHandler := http_handler.NewTransactionHandler(&authorizeTransactionUseCase)
+
+	server.POST("/authorize-transaction", transactionHandler.AuthorizeTransaction)
+
+	return server
 }

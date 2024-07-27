@@ -1,6 +1,7 @@
 package http
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -25,13 +26,16 @@ func (h *TransactionHandler) AuthorizeTransaction(c *gin.Context) {
 	var inputTransactionDTO usecase.InputTransactionDTO
 
 	if err := c.ShouldBindBodyWithJSON(&inputTransactionDTO); err != nil {
-		c.JSON(http.StatusOK, gin.H{"error": domain.GetGenericResponseError("invalid request format")})
+		c.JSON(http.StatusOK, domain.GetGenericResponseError("invalid request format"))
+		return
 	}
 
 	v := validator.New()
 
-	if usecase.ValidateInputTransaction(v, inputTransactionDTO); v.Errors != nil {
-		c.JSON(http.StatusOK, gin.H{"error": domain.GetGenericResponseError("invalid request format")})
+	if usecase.ValidateInputTransaction(v, inputTransactionDTO); !v.Valid() {
+		fmt.Println("errors", v.Errors)
+		c.JSON(http.StatusOK, domain.GetGenericResponseError("invalid request format"))
+		return
 	}
 
 	output := h.authorizeTransaction.Execute(inputTransactionDTO)
