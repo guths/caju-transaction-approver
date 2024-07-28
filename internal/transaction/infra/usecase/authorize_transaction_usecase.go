@@ -118,6 +118,10 @@ func (uc *AuthorizeTransactionUseCase) Execute(inputAuthorizeTransactionDTO Inpu
 		return domain.GetGenericResponseError(err.Error())
 	}
 
+	if c.Id == fallbackCategory.Id {
+		return domain.GetRejectedResponse()
+	}
+
 	_, err = uc.balanceService.DebitAmount(account.Id, fallbackCategory.Id, amount)
 
 	if err != nil {

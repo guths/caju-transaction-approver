@@ -34,6 +34,10 @@ docker compose up app --build
 docker compose run test
 ```
 
+### Diagrama
+
+![Diagram](assets/transaction_diagram.png)
+
 #### Implementações extras
 
 - Foi adicionado um workflow de ci no github actions que:
