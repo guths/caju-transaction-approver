@@ -1,8 +1,6 @@
 package usecase
 
 import (
-	"fmt"
-
 	account_service "github.com/guths/caju-transaction-approver/internal/account/infra/service"
 	merchant_service "github.com/guths/caju-transaction-approver/internal/merchant/infra/service"
 	"github.com/guths/caju-transaction-approver/internal/transaction/domain"
@@ -104,7 +102,6 @@ func (uc *AuthorizeTransactionUseCase) Execute(inputAuthorizeTransactionDTO Inpu
 	c, err := uc.merchantService.GetCategoryByMerchantName(inputAuthorizeTransactionDTO.Merchant)
 
 	if err != nil {
-		fmt.Println(err)
 		return domain.GetGenericResponseError(err.Error())
 	}
 
